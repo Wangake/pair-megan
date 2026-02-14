@@ -50,11 +50,18 @@ app.post('/api/start', async (req, res) => {
     }
 });
 
-// Catch-all route to serve index.html
-app.get('*', (req, res) => {
+// Serve the main page
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Serve the pairing page
+app.get('/pair', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pair.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 MEGAN MD Pairing UI running on port ${PORT}`);
+    console.log(`📱 Main page: http://localhost:${PORT}`);
+    console.log(`🔗 Pair page: http://localhost:${PORT}/pair`);
 });
