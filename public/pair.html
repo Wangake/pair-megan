@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>MEGAN PAIR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #0a0f1e;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .container {
+            background: #162b3a;
+            width: 100%;
+            max-width: 400px;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #00aaff33;
+        }
+
+        h1 {
+            color: #00aaff;
+            font-size: 28px;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #8899aa;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            background: #1e3a4a;
+            border: 1px solid #00aaff66;
+            border-radius: 12px;
+            color: white;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #00aaff;
+        }
+
+        input::placeholder {
+            color: #668899;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: #00aaff;
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 20px;
+        }
+
+        button:active {
+            background: #0088cc;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .result {
+            background: #1e3a4a;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #00aaff66;
+        }
+
+        .code-label {
+            color: #8899aa;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .code {
+            color: #00aaff;
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+            word-break: break-word;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid #00aaff;
+            color: #00aaff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .copy-btn:active {
+            background: #00aaff;
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00aaff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MEGAN PAIR</h1>
+        <p class="subtitle">Get WhatsApp pairing code</p>
+
+        <input type="tel" id="phone" placeholder="254700000000" value="254" inputmode="numeric">
+
+        <button id="generateBtn">
+            <span id="btnText">Generate Code</span>
+            <span id="btnLoader" class="loader" style="display: none;"></span>
+        </button>
+
+        <div id="result" class="result hidden">
+            <div class="code-label">Your pairing code:</div>
+            <div class="code" id="codeDisplay"></div>
+            <button class="copy-btn" id="copyBtn">Copy Code</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <script>
+        const phoneInput = document.getElementById('phone');
+        const generateBtn = document.getElementById('generateBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        const resultDiv = document.getElementById('result');
+        const codeDisplay = document.getElementById('codeDisplay');
+        const copyBtn = document.getElementById('copyBtn');
+        const toast = document.getElementById('toast');
+
+        // Only allow numbers
+        phoneInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+
+        generateBtn.addEventListener('click', generateCode);
+
+        async function generateCode() {
+            const phone = phoneInput.value.replace(/\D/g, '');
+
+            if (!phone || phone.length < 7) {
+                showToast('Enter valid number');
+                return;
+            }
+
+            // Loading
+            generateBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline-block';
+            resultDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    codeDisplay.textContent = data.code;
+                    resultDiv.classList.remove('hidden');
+                } else {
+                    showToast('Error: ' + (data.error || 'Failed'));
+                }
+            } catch (error) {
+                showToast('Network error');
+            }
+
+            // Reset button
+            generateBtn.disabled = false;
+            btnText.style.display = 'block';
+            btnLoader.style.display = 'none';
+        }
+
+        copyBtn.addEventListener('click', () => {
+            const code = codeDisplay.textContent;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast('Copied!');
+                });
+            } else {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = code;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('Copied!');
+            }
+        });
+
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
